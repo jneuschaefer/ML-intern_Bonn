@@ -1,0 +1,356 @@
+\documentclass[handout, xcolor=dvipsnames]{beamer}
+\usepackage{amsmath,amssymb,amsfonts,amsthm,amsbsy,mathtools}
+\usepackage{graphicx}
+\usecolortheme{whale}
+\setbeamercolor{structure}{fg=MidnightBlue}
+\usepackage{multimedia}
+\usepackage[many]{tcolorbox}
+\usepackage{multicol}
+\definecolor{main}{HTML}{5989cf}  
+\definecolor{sub}{HTML}{cde4ff}
+\newtcolorbox{groups}{
+    fontupper = \color{white},
+    rounded corners,
+    arc = 6pt,
+    colback = main!80, 
+    colframe = main, 
+    boxrule = 0pt, 
+    bottomrule = 4pt,
+    enhanced,
+    fuzzy shadow = {0pt}{-3pt}{-0.5pt}{0.5pt}{black!35}
+}
+
+
+\title{Classification of the 20 newsgroups dataset}
+\subtitle{ML lab 2024, Prof. Garcke, Dr. Bohn}
+\author{Jonas Neuschäfer, Lena Siemer}
+
+
+\begin{document}
+
+\frame{\titlepage}
+
+\frame{\frametitle{Recap and Motivation}
+\begin{columns}
+    \column{0.5\textwidth}
+    The dataset is a collection of newsgroup documents, originially of the form
+    \begin{itemize}
+    \item From:
+    \item Subject:
+    \item \dots
+    \item $\Rightarrow$ newsgroup
+    (there are 20, more or less evenly distributed)
+    \end{itemize}
+    \column{0.5\textwidth}
+    \begin{itemize}
+        \item Training data: 11314
+        \item 18828 messages in total
+    
+\end{itemize}
+~\\
+~\\
+\end{columns}
+\vfill
+\textbf{Motivation}: Trying out and combining different leverages to improve the classification (feature extraction + different classifiers vs. fine-tuning of parameters)
+
+}
+
+\frame{\frametitle{Outline}
+\begin{itemize}
+    \item[Step 1] Preprocessing the dataset
+    \item[Step 2] Feature Extraction
+    \begin{itemize}
+        \item Bag-of-words model
+        \item TF-IDF Vectorizing
+        \item n-gram
+    \end{itemize}
+    \item[Step 3] Comparison of Classifiers used in the lab
+    \begin{itemize}
+        \item[3.1] Setting up Feedforward Neural Network
+        \item[3.2] Support Vector Machine, Nearest Neighbors, other Regression
+    \end{itemize}
+    \item[Step 4] Evaluation of the performance on different tasks
+    \begin{itemize}
+        \item i.e. Grouping
+    \end{itemize}
+    \item[Step 5:] Classification via Fine-Tuning
+\end{itemize}
+}
+
+\frame{\frametitle{Step 1: Preprocessing the dataset}
+Our preprossesing function includes the following steps:
+    \begin{enumerate}
+    \item Remove metadata
+        \item Delete symbols and punctuation%(keep " ' ")
+        \item lower casing
+        \item Remove digits
+        \item Remove "very short" words
+        \item stop words
+        \item lemmatization
+    \end{enumerate}\vfill 
+    $\Longrightarrow$ Being able to reduce the length of a message, in selected examples, by approximately 50\%.}
+
+\begin{frame} %%Eine Folie
+  \frametitle{Step 2: Vectorizing} %%Folientitel
+    Possible ways to vectorize:
+    \begin{itemize}
+        \item Bag-of-words
+        \begin{itemize}
+            \item token counts
+        \end{itemize}
+        \item TF-IDF vectorization
+        \begin{itemize}
+            \item Term frequency $*$ Inverse document frequency $={\frac {f_{t,d}}{\sum _{t'\in d}{f_{t',d}}}} * \log {\frac {N}{|\{d:d\in D{\text{ and }}t\in d\}|}}$
+        \end{itemize}
+        \item n-gram
+        \begin{itemize}
+            \item sequence of n consecutive words in a text
+            \item possibly better 'understanding' of the sentence
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\frame{\frametitle{Vectorizing - first attempts to gain intuition of how good we are}
+\begin{itemize}
+    \item Depending on the steps included during the preprocessing of the dataset and the choice of a classifier we generally achieve a low accuracy with our \textbf{Bag-of-words} function.
+    \begin{itemize}
+        \item Using \textbf{Ridge-Regression as benchmark}: $\approx$ 50\% on the whole dataset.
+    \end{itemize}
+    \item Using the \textbf{TF-IDF Vectorizer} from sklearn already yields 70\% accuracy.
+    \item Including \textbf{n-gram} feature had no significant effect.
+    \begin{itemize}
+        \item range $[1, 2]$
+    \end{itemize}
+\end{itemize}
+\vfill
+Hence, we decided to work with the TF-IDF features for the next few proceeding questions we want to address (including stop-word-filtering).}
+
+\frame{\frametitle{Step 3.1: Setting up a Neural Network for Classification}
+\begin{itemize}
+    \item Feedforward Neural Network with 2 layers (Dense).
+    \end{itemize}
+    \begin{figure}[h]
+    \centering
+    \includegraphics[scale=.4
+    ]{neural_networks_accuracy.png}
+    \label{fig:neural_networks}
+  \end{figure}
+  $\rightarrow$ Overfitting very fast! $\rightarrow$ adding Dropout: 71\% accuracy
+}
+
+\frame{\frametitle{3.2 Comparison of Classifiers}
+\begin{itemize}
+        \item Multinomial Bayes
+        % https://www.geeksforgeeks.org/multinomial-naive-bayes/
+        \begin{itemize}
+            \item assumes that the presents of one feature does not affect the other
+            \item calculates probability distribution of text data
+            \item $P(D|c)= \frac{T_c !}{\prod_{i=1}^V x_i!}\prod_{i=1}^V \frac{\theta_{c,i}^{x_i}}{x_i!}$\\
+            $T_c$  is the total number of words in documents of class c\\
+            $x_i$ is the count of word i in document D\\
+            $\theta_{c,i}$  is the probability of word i occurring in a document of class c
+        \end{itemize}
+    \end{itemize}}
+
+\begin{frame}{3.2 Comparison of Classifiers}
+    \begin{itemize}
+        \item Ridge Regression
+        % https://databasecamp.de/ki/ridge-regression
+        \begin{itemize}
+            \item special version of linear regression
+            \item developed to deal with correlated attributes
+            \item encourages smaller, more evenly distributed weights by adding a penalty based on the square of the coefficients
+        \end{itemize}
+        \item Logistic regression
+        % https://datatab.de/tutorial/logistische-regression#:~:text=Die%20logistische%20Regression%20ist%20ein,kauft%20kein%20Produkt%22%20der%20Fall.
+        \begin{itemize}
+        \item special version of linear regression
+            \item fit data to logistic function $f(z) = \frac{1}{1+ e^{-z}}$
+            \item calculates probabilities
+        \end{itemize}
+        \item Random Forest
+        \begin{itemize}
+            \item create uncorrelated decision trees 
+            \item train each with a different, random part of the data
+            \item prediction: aggregate all predictions of the trees
+        \end{itemize}
+    \end{itemize}    
+\end{frame}
+
+\begin{frame} %%Eine Folie
+  \frametitle{3. Comparison of different classifiers} %%Folientitel
+  \begin{figure}[h]
+    \centering
+    \includegraphics[scale=.49]{comparison_classifier1.png}
+    \label{fig:comparison_classifier1}
+  \end{figure}
+\end{frame}
+\begin{frame} %%Eine Folie
+  \frametitle{3. Comparison of different classifiers} %%Folientitel
+    \begin{figure}[h]
+      \centering
+      \includegraphics[scale=.49]{comparison_classifier2.jpeg}
+      \label{fig:comparison_classifier2}
+    \end{figure} 
+\end{frame}
+
+\begin{frame} %%Eine Folie
+  \frametitle{Confusion matrix} %%Folientitel
+  \begin{figure}[h]
+    \centering
+    \includegraphics[scale=.6]{Confusion_matrix_neural.png}
+    \label{fig:Confusion_matrix}
+  \end{figure}
+  %We see a lot of intersections between the newsgroups, which is of course not against expectations. Obviously, several words in the range of talk.politics.misc can be associated with another group in that area, like talk.politics.guns for example (but not vice-versa in that case), or comp.windows shares expressions with those of comp.graphics.
+\end{frame}
+
+\begin{frame} %%Eine Folie
+  \frametitle{Accuracy Report} %%Folientitel
+  \begin{figure}[h]
+    \centering
+    \includegraphics[scale=.4]{acc_rep.png}
+    \label{fig:Confusion_matrix}
+  \end{figure}
+  %We see a lot of intersections between the newsgroups, which is of course not against expectations. Obviously, several words in the range of talk.politics.misc can be associated with another group in that area, like talk.politics.guns for example (but not vice-versa in that case), or comp.windows shares expressions with those of comp.graphics.
+\end{frame}
+
+\frame{\frametitle{Top features with scores}
+\begin{columns}
+    \column{0.5\textwidth}
+    \begin{tabular}{l}
+\textbf{talk.politics.guns:}\\
+bd: 1.423\\
+nra: 1.426\\
+fbi: 1.444\\
+weapon: 1.464\\
+jmd: 1.591\\
+firearm: 1.794\\
+weapons: 2.051\\
+guns: 2.183\\
+gun: 2.699
+\end{tabular}
+\column{0.5\textwidth}
+\begin{tabular}{l}
+\textbf{talk.politics.misc:}\\
+deane: 1.178\\
+taxes: 1.181\\
+homosexuals: 1.183\\
+libertarian:1.247\\
+blacks: 1.728\\
+jobs: 1.287\\
+drugs: 1.403\\
+tax: 1.566\\
+libertarians: 1.576
+\end{tabular}
+\end{columns}
+}
+
+\begin{frame}[shrink] %%Eine Folie
+  \frametitle{4. Grouping}
+    \begin{multicols}{2}
+        \begin{groups}
+            alt.atheism
+        \end{groups}
+        \begin{groups}
+            comp.graphics
+            comp.os.ms-windows.misc
+            comp.sys.ibm.pc.hardware
+            comp.sys.mac.hardware
+            comp.windows.x
+        \end{groups}
+        \begin{groups}
+            rec.autos\\
+            rec.motorcycles
+            rec.sport.baseball
+            rec.sport.hockey
+        \end{groups}
+        \begin{groups}
+            sci.crypt\\
+            sci.electronics\\
+            sci.med\\
+            sci.space
+        \end{groups}
+        \begin{groups}
+            soc.religion.christian
+        \end{groups}
+        \begin{groups}
+            talk.politics.guns
+            talk.politics.mideast
+            talk.politics.misc
+            talk.religion.misc
+        \end{groups}
+        \begin{groups}
+            misc.forsale
+        \end{groups}
+        
+    \end{multicols}
+\end{frame}
+
+\frame{\frametitle{Grouping - Result}
+\begin{itemize}
+    \item We achieve an accuracy of 79\% using Ridge Regression.
+\end{itemize}
+
+  \begin{figure}[h]
+    \centering
+    \includegraphics[scale=.4]{Confusion_matrix_grouping}
+    \label{fig:Confusion_matrix}
+  \end{figure}
+  }
+
+\frame{\frametitle{Comparison with Monday (not in the notebook)}
+\begin{itemize}
+    \item We achieve an accuracy of 82\% using our Neural Network.
+\end{itemize}
+  \begin{figure}[h]
+    \centering
+    \includegraphics[scale=.5]{conf_group.png}
+    \label{fig:Confusion_matrix}
+  \end{figure}
+  }
+
+
+\frame{\frametitle{5. Classification via Fine-Tuning}
+\begin{itemize}
+    \item Working with transformers
+    \begin{itemize}
+    \item Introduced by Vaswani et al. in 2017
+        \item Input Embedding: Word $\mapsto \underbrace{\begin{pmatrix}
+            ~\\~\\~
+        \end{pmatrix}}_{\text{word vector}} + \underbrace{\begin{pmatrix}
+            ~\\~\\~
+        \end{pmatrix}}_{\text{position encoding}}$
+    \item Each of Transformer's encoder layers comprise
+    \begin{itemize}
+        \item Attention mechanism, where scores are calculated how relevant each word is to another (attention-weights)
+        \item Fully Connected Feedforward Neural Network
+    \end{itemize}
+        \end{itemize}
+    \item We used one version of the BERT base model.
+    \item Sub-word tokenization (encoding) of the messages (assigns $input-ids$ and $attention-mask$)
+    \item Fine-tuned by specifying the training arguments (optimize weighted average of f1-score)
+\end{itemize}}
+\frame{\frametitle{5. Classification via Fine-Tuning}
+\begin{itemize}
+\item Trying it with only 4 randomly picked categories (unfortunately similar): ['alt.atheism',
+ 'comp.graphics',
+ 'comp.os.ms-windows.misc',
+ 'comp.sys.ibm.pc.hardware']
+    \item We achieve an accuracy of 80.7\% .
+\end{itemize}
+  \begin{figure}[h]
+    \centering
+    \includegraphics[scale=.5]{fine.png}
+    \label{fig:Confusion_matrix}
+  \end{figure}}
+  \frame{\frametitle{Example Text}
+  Example message after preprocessing: "24bit color dpi fladbed scanner job gif tiff pcx bmp interested please write imagesyzaolcom"
+  \begin{itemize}
+      \item After encoding we can read out the probabilities:
+  \end{itemize}
+  \begin{figure}[h]
+    \centering
+    \includegraphics[scale=.5]{download.png}
+    \label{fig:Confusion_matrix}
+  \end{figure}}
+\end{document}

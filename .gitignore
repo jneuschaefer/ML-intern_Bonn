@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data files
+*.zip
+*.tar.gz
+*.gz
+*.pt
+*.npy
+*.mat
+
+# Large data folders
+MNIST/
+data/
+
+# LaTeX
+*.aux
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.synctex.gz
+*.pdf
